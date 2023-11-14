@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\glm;D:\Glad\include;C:\Users\Msi\Downloads\SFML-2.6.0-windows-vc16-64-bit\SFML-2.6.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\Glad\include;D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\SFML-2.6.0-windows-vc16-64-bit\SFML-2.6.0\include;D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,7 +122,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\glm;D:\Glad\include;C:\Users\Msi\Downloads\SFML-2.6.0-windows-vc16-64-bit\SFML-2.6.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\Glad\include;D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\SFML-2.6.0-windows-vc16-64-bit\SFML-2.6.0\include;D:\ProgramowanieGier\OPENGLHelloWorld\ProgGierProjekt\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,14 +149,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraOld.cpp" />
+    <ClCompile Include="Cube.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="ProgGierProjekt.cpp" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="CameraOld.h" />
+    <ClInclude Include="Cube.h" />
+    <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="shaders.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="grass.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
