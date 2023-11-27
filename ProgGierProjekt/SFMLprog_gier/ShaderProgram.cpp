@@ -12,11 +12,12 @@ std::string ShaderProgram::s_vertexShaderSource = R"(
     
     uniform mat4 mvp;
     uniform mat4 model;
-    uniform mat4 view;
-    uniform mat4 proj;
+    uniform mat4 projectionView;
+    //uniform mat4 view;
+    //uniform mat4 proj;
 
     void main() {
-        gl_Position = proj * view * model * vec4(aPos, 1.0);
+        gl_Position = projectionView * model * vec4(aPos, 1.0);
         outTexCoords = inTexCoords;
     }
     )";
@@ -60,6 +61,7 @@ ShaderProgram::ShaderProgram() : m_programId(glCreateProgram()) {
     SetInt("texture1", 0);
 }
 ShaderProgram::~ShaderProgram() {
+    glDeleteProgram(m_programId);
 }
 GLuint ShaderProgram::createProgram(GLuint vertexShader, GLuint fragmentShader, GLuint geometryShader)
 {

@@ -10,7 +10,7 @@ Camera::Camera(const glm::vec3& position, const glm::vec3& front, float yaw, flo
     m_pitch(pitch)
 {
     RecreateLootAt();
-    m_projection = glm::perspective(45.0f, 800.0f / 600.0f, 0.1f, 1000.0f);
+    m_projection = glm::perspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
 
 
 }
@@ -23,7 +23,7 @@ void Camera::Rotate(const sf::Vector2i& mouseDelta) {
     RecreateLootAt();
 }
 void Camera::MoveForward(float dt) {
-    m_position += m_front * dt;
+    m_position += 2.0f*m_front * dt;
     RecreateLootAt();
 }
 void Camera::MoveBackward(float dt) {

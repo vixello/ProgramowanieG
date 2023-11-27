@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 
-void Cube::CreateVertexBufferObject() {
+void Cube::CreateVertexBufferObject(std::string texturePath) {
 
 	//float vertices[] = {
 	//	 0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
@@ -12,6 +12,16 @@ void Cube::CreateVertexBufferObject() {
 	//	-0.5f, 0.5f, 0.0f, 0.0f, 1.0f
 	//};
 	//GLuint m_vbo, m_vao;
+	if (texturePath.find("grass") != std::string::npos) {
+		m_type = Type::Grass;
+	}
+	else if (texturePath.find("stone") != std::string::npos) {
+		m_type = Type::Stone;
+	}
+	else {
+		m_type = Type::None;
+	}
+
 	glGenVertexArrays(1, &m_vao);
 	glGenBuffers(1, &m_vbo);
 
@@ -26,9 +36,12 @@ void Cube::CreateVertexBufferObject() {
 	// 2 floaty u v reprezentuj¹ce miejsce na teksturze
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	
+	m_texture = CreateTexture(texturePath);
+
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
+	glBindVertexArray(0);
 
 	//return std::make_pair(m_vbo, m_vao);
 };
@@ -88,13 +101,19 @@ Cube::Cube(Cube&& rhs) noexcept
 	, m_vao(std::exchange(rhs.m_vao, 0))
 	, m_texture(std::exchange(rhs.m_texture, 0)) {
 }
-Cube::Cube(const std::string& texturePath) {
-	m_texture = CreateTexture(texturePath);
-	CreateVertexBufferObject();
+Cube::Cube(const std::string& texturePath):
+	m_vao(0),
+	m_vbo(0),
+	m_texture(0)
+{
+	CreateVertexBufferObject(texturePath);
 
 }
 
 Cube::~Cube(){
+	glDeleteVertexArrays(1, &m_vao);
+	glDeleteBuffers(1, &m_vbo);
+	glDeleteTextures(1, &m_texture);
 }
 
 Cube& Cube::operator=(Cube&& rhs) noexcept {
@@ -117,9 +136,11 @@ GLuint Cube::CreateTexture(const std::string& path) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	sf::Image image;
 	if (image.loadFromFile(path)) {
 		image.flipVertically();

@@ -151,19 +151,28 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraOld.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="CubePalette.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="ProgGierProjekt.cpp" />
+    <ClCompile Include="PerlinNoise.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
+    <ClCompile Include="Chunk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraOld.h" />
+    <ClInclude Include="Chunk.h" />
     <ClInclude Include="Cube.h" />
+    <ClInclude Include="CubePalette.h" />
+    <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="shaders.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="grass.jpg" />
+    <Image Include="grass1.jpg" />
+    <Image Include="grass_debug.jpg" />
+    <Image Include="stone.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
