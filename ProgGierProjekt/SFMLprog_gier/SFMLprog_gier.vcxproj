@@ -148,6 +148,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AABB.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraOld.cpp" />
     <ClCompile Include="Cube.cpp" />
@@ -155,16 +156,19 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Ray.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="Chunk.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AABB.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraOld.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="CubePalette.h" />
     <ClInclude Include="PerlinNoise.h" />
+    <ClInclude Include="Ray.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="shaders.h" />
   </ItemGroup>

@@ -14,6 +14,16 @@ Camera::Camera(const glm::vec3& position, const glm::vec3& front, float yaw, flo
 
 
 }
+glm::vec3 Camera::Direction() const {
+    // Calculate the direction vector based on yaw and pitch angles
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(m_pitch)) * cos(glm::radians(m_yaw));
+    direction.y = sin(glm::radians(m_pitch));
+    direction.z = cos(glm::radians(m_pitch)) * sin(glm::radians(m_yaw));
+
+    // Normalize the direction vector
+    return glm::normalize(direction);
+}
 
 void Camera::Rotate(const sf::Vector2i& mouseDelta) {
     m_yaw += mouseDelta.x;

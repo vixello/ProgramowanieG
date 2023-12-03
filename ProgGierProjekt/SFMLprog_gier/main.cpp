@@ -8,6 +8,29 @@
 #include "Cube.h"
 #include "Chunk.h"
 
+void handleMouseInput(bool& buttonHeld, bool isLeftButton, const Camera& camera, std::vector<Chunk<16, 16, 32>>& minecraftWorld) {
+    if (sf::Mouse::isButtonPressed(isLeftButton ? sf::Mouse::Left : sf::Mouse::Right)) {
+        if (!buttonHeld) {
+            Ray ray(camera.Position(), camera.Direction());
+            Chunk<16, 16, 32>::HitRecord hitRecord;
+            for (auto& chunk : minecraftWorld) {
+                if (chunk.Hit(ray, 0.0f, 4.0f, hitRecord) == Ray::HitType::Hit) {
+                    if (isLeftButton) {
+                        chunk.RemoveBlock(hitRecord.m_cubeIndex.x, hitRecord.m_cubeIndex.y, hitRecord.m_cubeIndex.z);
+                    }
+                    else {
+                        std::cout << "chunk hit" << std::endl;
+                        chunk.PlaceBlock(hitRecord.m_neighbourIndex.x, hitRecord.m_neighbourIndex.y, hitRecord.m_neighbourIndex.z, Cube::Type::Stone);
+                    }
+                }
+            }
+        }
+        buttonHeld = true;
+    }
+    else {
+        buttonHeld = false;
+    }
+}
 
 int main()
 {
@@ -23,7 +46,7 @@ int main()
 
     //sf::RenderWindow window(sf::VideoMode(800, 600), "Opengl hello world");
 
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Minecraft", sf::Style::Default, contextSettings);
+    sf::RenderWindow window(sf::VideoMode(1600, 1000), "Minecraft", sf::Style::Default, contextSettings);
     window.setVerticalSyncEnabled(true);
     window.setActive(true);
 
@@ -31,29 +54,23 @@ int main()
 
     glViewport(0, 0, static_cast<GLsizei>(window.getSize().x), static_cast<GLsizei>(window.getSize().y));
 
-    //std::string version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    //std::cout << version;
-
     //glDepthFunc(GL_LESS);
     //glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
 
 
-    //Shader shader(VertexShader, FragmentShader);
-    //CameraOld cameraOld;
-
-    const uint8_t ChunkDepth = 8;
-    const uint8_t ChunkWidth = 8;
+    const uint8_t ChunkDepth = 16;
+    const uint8_t ChunkWidth = 16;
     const uint8_t ChunkHeight = 32;
 
     ShaderProgram shaderProgram;
-    Camera camera(glm::vec3(0.0f,20.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f),-90.0f,0.0f);
+    Camera camera(glm::vec3(0.0f,18.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f),0.0f,0.0f);
     //Cube cube("grass.jpg");
     CubePalette cubePalette;
 
     std::vector<Chunk<ChunkDepth, ChunkWidth, ChunkHeight>> minecraftWorld;
 
-    minecraftWorld.reserve(9);
+    minecraftWorld.reserve(1);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             minecraftWorld.emplace_back(glm::vec2(i, j), cubePalette);
@@ -64,22 +81,15 @@ int main()
         chunk.Generate(rng);
     }
 
-    ////vertex buffer object i vertex array object
-    //GLuint vbo, vao;
-
-    //std::pair<GLuint, GLuint> vertexObjectsPair = cube.CreateVertexBufferObject();
-
-    //vbo = vertexObjectsPair.first;
-    //vao = vertexObjectsPair.second;
-
     bool running = true;
+    bool rbHeld = false;
+    bool lbHeld = false;
 
     sf::Vector2i mousePosition = sf::Mouse::getPosition();
     sf::Clock clock;
-
+    
+    
     // run the program as long as the window is open
-
-
     while (running)
     {
         // clear buffers 
@@ -88,9 +98,19 @@ int main()
 
         const float dt = clock.restart().asSeconds();
 
-        const sf::Vector2i newMousePosition = sf::Mouse::getPosition();
-        camera.Rotate(newMousePosition - mousePosition);
-        mousePosition = newMousePosition;
+        if (window.hasFocus()) {
+            const sf::Vector2i newMousePosition = sf::Mouse::getPosition(window);
+            if (newMousePosition.x >= 0 && newMousePosition.y >= 0 &&
+                newMousePosition.x < window.getSize().x && newMousePosition.y < window.getSize().y)
+            {
+                camera.Rotate(newMousePosition - mousePosition);
+                mousePosition = newMousePosition;
+            }
+        }
+
+
+
+
         // check all the window's events that were triggered since the last iteration of the loop
         sf::Event event;
         while (window.pollEvent(event))
@@ -123,21 +143,17 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
             camera.MoveDown(dt);
         }
+        //std::cout << camera.Direction().x<<" "<< camera.Direction().y<<" "<< camera.Direction().z << std::endl;
 
+        // Handle mouse input for left button
+        handleMouseInput(lbHeld, true, camera, minecraftWorld);
+
+        // Handle mouse input for right button
+        handleMouseInput(rbHeld, false, camera, minecraftWorld);
 
         //glUseProgram(programId);
         shaderProgram.Use();
-        //glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-        //GLint uniModel = glGetUniformLocation(shaderProgram.getProgramId(), "model");
-        //glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-
-        //GLint uniView = glGetUniformLocation(shaderProgram.getProgramId(), "view");
-        //glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(camera.View()));
-
-        //GLint uniProj = glGetUniformLocation(shaderProgram.getProgramId(), "proj");
-        //glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(camera.Projection()));
 
         const glm::mat4& view = camera.View();
         const glm::mat4& projection = camera.Projection();
@@ -152,6 +168,7 @@ int main()
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawArrays(GL_TRIANGLES, 0, 36); // Draw the cube
 */
+
         for (auto& chunk : minecraftWorld) {
             chunk.Draw(shaderProgram);
         }
@@ -168,3 +185,4 @@ int main()
         */
     return 0;
 }
+

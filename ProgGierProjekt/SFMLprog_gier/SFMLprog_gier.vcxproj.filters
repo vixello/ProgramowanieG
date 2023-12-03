@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Res">
+      <UniqueIdentifier>{a93e80ad-42e9-48a4-95ef-727d97eeb434}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -42,11 +45,14 @@
     <ClCompile Include="CubePalette.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="AABB.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="Ray.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="shaders.h">
-      <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -60,27 +66,36 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="Chunk.h">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="CubePalette.h">
-      <Filter>Pliki źródłowe</Filter>
+    <ClInclude Include="AABB.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="Ray.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders.h">
+      <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="PerlinNoise.h">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CubePalette.h">
+      <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="grass.jpg">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>Res</Filter>
     </Image>
     <Image Include="grass_debug.jpg">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>Res</Filter>
     </Image>
     <Image Include="grass1.jpg">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>Res</Filter>
     </Image>
     <Image Include="stone.jpg">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>Res</Filter>
     </Image>
   </ItemGroup>
 </Project>
