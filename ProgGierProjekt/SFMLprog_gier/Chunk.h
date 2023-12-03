@@ -170,7 +170,12 @@ inline Ray::HitType Chunk<Depth, Width, Height>::Hit(const Ray& ray, Ray::time_t
 						record.m_neighbourIndex = glm::vec3(width_i, height_i, depth_i);
 
 						size_t axis = static_cast<size_t>(record_aabb.m_axis);
-						record.m_neighbourIndex[axis] += record_aabb.m_point[axis] > cube_position[axis] ? 1: -1;
+						if (record_aabb.m_point[axis] > cube_position[axis]) {
+							record.m_neighbourIndex[axis] += 1;
+						}
+						else {
+							record.m_neighbourIndex[axis] -= 1;
+						}
 						hit_or_not = Ray::HitType::Hit;
 						//std::cout << "Cube hit at: " << record.m_cubeIndex.x << ", " << record.m_cubeIndex.y << ", " << record.m_cubeIndex.z << std::endl;
 
