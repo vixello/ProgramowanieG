@@ -1,6 +1,13 @@
 # ProgramowanieG
-Chunk
+Adding removing
 
+
+
+https://github.com/vixello/ProgramowanieG/assets/79693214/3eecceaf-de15-4f6f-8111-484660e9085a
+
+
+
+Chunk
 
 https://github.com/vixello/ProgramowanieG/assets/79693214/83addff5-bbb7-4313-99cb-f9bf0cf0f984
 
