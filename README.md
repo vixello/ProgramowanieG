@@ -1,6 +1,11 @@
 # ProgramowanieG
-Adding removing
 
+Rendering terrain
+
+https://github.com/vixello/ProgramowanieG/assets/79693214/0fd1a9bb-4f58-4f63-a54c-e688ab286026
+
+
+Adding removing
 
 
 https://github.com/vixello/ProgramowanieG/assets/79693214/3eecceaf-de15-4f6f-8111-484660e9085a
