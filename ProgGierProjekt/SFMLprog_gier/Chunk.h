@@ -37,6 +37,7 @@ public:
 	 * Contains all data needed after ray cast to remove and place new blocks
 	 */
 	struct HitRecord {
+		Ray::time_t m_time;
 		glm::ivec3 m_cubeIndex;
 		glm::ivec3 m_neighbourIndex;
 	};
@@ -50,7 +51,7 @@ public:
 
 	bool RemoveBlock(uint8_t width, uint8_t height, uint8_t depth);
 	bool PlaceBlock(uint8_t width, uint8_t height, uint8_t depth, Cube::Type type);
-
+	glm::vec2 getOrigin() { return m_origin; };
 private:
 	size_t CoordsToIndex(size_t depth, size_t width, size_t height) const;
 	void UpdateVisibility();
@@ -170,12 +171,16 @@ inline Ray::HitType Chunk<Depth, Width, Height>::Hit(const Ray& ray, Ray::time_t
 						record.m_neighbourIndex = glm::vec3(width_i, height_i, depth_i);
 
 						size_t axis = static_cast<size_t>(record_aabb.m_axis);
-						if (record_aabb.m_point[axis] > cube_position[axis]) {
-							record.m_neighbourIndex[axis] += 1;
-						}
-						else {
-							record.m_neighbourIndex[axis] -= 1;
-						}
+						//if (record_aabb.m_point[axis] > cube_position[axis]) {
+						//	record.m_neighbourIndex[axis] += 1;
+						//}
+						//else {
+						//	record.m_neighbourIndex[axis] -= 1;
+						//}
+						const size_t axisIndex = static_cast<size_t>(record_aabb.m_axis);
+						record.m_neighbourIndex = glm::ivec3(width_i, height_i, depth_i);
+						record.m_neighbourIndex[axisIndex] += record_aabb.m_point[axisIndex] > cube_position[axisIndex] ? 1 : -1;
+						record.m_time = record_aabb.m_time;
 						hit_or_not = Ray::HitType::Hit;
 						//std::cout << "Cube hit at: " << record.m_cubeIndex.x << ", " << record.m_cubeIndex.y << ", " << record.m_cubeIndex.z << std::endl;
 
@@ -273,20 +278,28 @@ inline void Chunk<Depth, Width, Height>::UpdateVisibility() {
 	//		find CubeData in chunk
 	//		check type of all neighbours
 	//		save visibility
-	static const std::array<glm::vec3, 3 * 3 * 3> cube_neighbours = []() {
-		std::array<glm::vec3, 3 * 3 * 3> result;
-		int index = 0;
+	//static const std::array<glm::vec3, 3 * 3 * 3> cube_neighbours = []() {
+	//	std::array<glm::vec3, 3 * 3 * 3> result;
+	//	int index = 0;
 
-			for (int x = -1; x < 2; x++) {
-				for (int y = -1; y < 2; y++) {
-					for (int z = -1; z < 2; z++) {
-						result[index] = { x, y, z };  
-						index++;
-					}
-				}
-			}
-			return result;
-		} ();
+	//		for (int x = -1; x < 2; x++) {
+	//			for (int y = -1; y < 2; y++) {
+	//				for (int z = -1; z < 2; z++) {
+	//					result[index] = { x, y, z };  
+	//					index++;
+	//				}
+	//			}
+	//		}
+	//		return result;
+	//	} ();
+		static const std::array<glm::ivec3, 6> cube_neighbours = {
+		glm::ivec3{-1,  0,  0},
+		glm::ivec3{ 1,  0,  0},
+		glm::ivec3{ 0, -1,  0},
+		glm::ivec3{ 0,  1,  0},
+		glm::ivec3{ 0,  0, -1},
+		glm::ivec3{ 0,  0,  1}
+		};
 
 
 		for (uint8_t height_i = 1; height_i < Height - 1; height_i++) {
@@ -295,21 +308,12 @@ inline void Chunk<Depth, Width, Height>::UpdateVisibility() {
 					CubeData& current_cube = m_data[CoordsToIndex(depth_i, width_i, height_i)];
 					current_cube.m_isVisible = false;
 
-
 					for (const auto& cube_neighbour : cube_neighbours) {
-						size_t neighbor_index = CoordsToIndex(
-							depth_i + static_cast<size_t>(cube_neighbour.z),
-							width_i + static_cast<size_t>(cube_neighbour.x),
-							height_i + static_cast<size_t>(cube_neighbour.y)
-						);
-
-						if (m_data[neighbor_index].m_type != Cube::Type::None) {
+						if (m_data[CoordsToIndex(depth_i + cube_neighbour.z, width_i + cube_neighbour.x, height_i + cube_neighbour.y)].m_type == Cube::Type::None) {
 							current_cube.m_isVisible = true;
 							break;
 						}
 					}
-
-
 				}
 			}
 		}

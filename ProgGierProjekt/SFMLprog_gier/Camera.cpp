@@ -33,7 +33,7 @@ void Camera::Rotate(const sf::Vector2i& mouseDelta) {
     RecreateLootAt();
 }
 void Camera::MoveForward(float dt) {
-    m_position += 2.0f*m_front * dt;
+    m_position += 5.0f*m_front * dt;
     RecreateLootAt();
 }
 void Camera::MoveBackward(float dt) {
@@ -41,11 +41,11 @@ void Camera::MoveBackward(float dt) {
     RecreateLootAt();
 }
 void Camera::MoveLeft(float dt) {
-    m_position -= m_right * dt;
+    m_position -= 5.0f * m_right * dt;
     RecreateLootAt();
 }
 void Camera::MoveRight(float dt) {
-    m_position += m_right * dt;
+    m_position += 5.0f * m_right * dt;
     RecreateLootAt();
 }
 void Camera::MoveUp(float dt) {

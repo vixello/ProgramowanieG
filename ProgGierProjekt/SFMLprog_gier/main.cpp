@@ -7,21 +7,50 @@
 #include "Camera.h"
 #include "Cube.h"
 #include "Chunk.h"
+#include "WorldGenerator.h"
 
-void handleMouseInput(bool& buttonHeld, bool isLeftButton, const Camera& camera, std::vector<Chunk<16, 16, 32>>& minecraftWorld) {
+//void handleMouseInput(bool& buttonHeld, bool isLeftButton, const Camera& camera, std::vector<Chunk<32, 32, 32>>& minecraftWorld) {
+//    if (sf::Mouse::isButtonPressed(isLeftButton ? sf::Mouse::Left : sf::Mouse::Right)) {
+//        if (!buttonHeld) {
+//            Ray ray(camera.Position(), camera.Direction());
+//            Chunk<32, 32, 32>::HitRecord hitRecord;
+//            for (auto& chunk : minecraftWorld) {
+//                if (chunk.Hit(ray, 0.0f, 4.0f, hitRecord) == Ray::HitType::Hit) {
+//                    if (isLeftButton) {
+//                        chunk.RemoveBlock(hitRecord.m_cubeIndex.x, hitRecord.m_cubeIndex.y, hitRecord.m_cubeIndex.z);
+//                    }
+//                    else {
+//                        std::cout << "chunk hit" << std::endl;
+//                        chunk.PlaceBlock(hitRecord.m_neighbourIndex.x, hitRecord.m_neighbourIndex.y, hitRecord.m_neighbourIndex.z, Cube::Type::Stone);
+//                    }
+//                }
+//            }
+//        }
+//        buttonHeld = true;
+//    }
+//    else {
+//        buttonHeld = false;
+//    }
+//}
+void handleMouseInput(bool& buttonHeld, bool isLeftButton, const Camera& camera, WorldGenerator& worldGenerator) {
     if (sf::Mouse::isButtonPressed(isLeftButton ? sf::Mouse::Left : sf::Mouse::Right)) {
         if (!buttonHeld) {
             Ray ray(camera.Position(), camera.Direction());
-            Chunk<16, 16, 32>::HitRecord hitRecord;
-            for (auto& chunk : minecraftWorld) {
-                if (chunk.Hit(ray, 0.0f, 4.0f, hitRecord) == Ray::HitType::Hit) {
-                    if (isLeftButton) {
-                        chunk.RemoveBlock(hitRecord.m_cubeIndex.x, hitRecord.m_cubeIndex.y, hitRecord.m_cubeIndex.z);
-                    }
-                    else {
-                        std::cout << "chunk hit" << std::endl;
-                        chunk.PlaceBlock(hitRecord.m_neighbourIndex.x, hitRecord.m_neighbourIndex.y, hitRecord.m_neighbourIndex.z, Cube::Type::Stone);
-                    }
+            IWorldGenerator::HitRecord hitRecord;
+            std::cout << "Camera Position: " << camera.Position().x << ", " << camera.Position().y << ", " << camera.Position().z << std::endl;
+
+            // Use the WorldGenerator to perform block operations
+            if (worldGenerator.Hit(ray, 0.0f, 4.0f, hitRecord) == Ray::HitType::Hit) {
+                std::cout << "chunk was hit " << std::endl;
+
+                // Perform block operations based on mouse button
+                if (isLeftButton) {
+                    // Remove block
+                    worldGenerator.RemoveBlock(hitRecord.m_cubeCoordinates);
+                }
+                else {
+                    // Place block
+                    worldGenerator.PlaceBlock(hitRecord.m_neighbourCoordinates, Cube::Type::Stone);
                 }
             }
         }
@@ -68,18 +97,21 @@ int main()
     //Cube cube("grass.jpg");
     CubePalette cubePalette;
 
-    std::vector<Chunk<ChunkDepth, ChunkWidth, ChunkHeight>> minecraftWorld;
+    //std::vector<Chunk<ChunkDepth, ChunkWidth, ChunkHeight>> minecraftWorld;
 
-    minecraftWorld.reserve(1);
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            minecraftWorld.emplace_back(glm::vec2(i, j), cubePalette);
-        }
-    }
+    //minecraftWorld.reserve(1);
+    //for (int i = 0; i < 3; i++) {
+    //    for (int j = 0; j < 3; j++) {
+    //        minecraftWorld.emplace_back(glm::vec2(i, j), cubePalette);
+    //    }
+    //}
     PerlinNoise rng;
-    for (auto& chunk : minecraftWorld) {
-        chunk.Generate(rng);
-    }
+    //for (auto& chunk : minecraftWorld) {
+    //    chunk.Generate(rng);
+    //}
+    size_t renderDistance = 1;  
+
+    WorldGenerator worldGenerator(renderDistance);
 
     bool running = true;
     bool rbHeld = false;
@@ -87,8 +119,9 @@ int main()
 
     sf::Vector2i mousePosition = sf::Mouse::getPosition();
     sf::Clock clock;
-    
-    
+    CameraStreamingSource cameraStreamingSource(camera);
+    worldGenerator.RegisterStreamingSource(&cameraStreamingSource);
+
     // run the program as long as the window is open
     while (running)
     {
@@ -146,14 +179,16 @@ int main()
         //std::cout << camera.Direction().x<<" "<< camera.Direction().y<<" "<< camera.Direction().z << std::endl;
 
         // Handle mouse input for left button
-        handleMouseInput(lbHeld, true, camera, minecraftWorld);
+        handleMouseInput(lbHeld, true, camera, worldGenerator );
 
         // Handle mouse input for right button
-        handleMouseInput(rbHeld, false, camera, minecraftWorld);
+        handleMouseInput(rbHeld, false, camera, worldGenerator);
 
         //glUseProgram(programId);
         shaderProgram.Use();
 
+        cameraStreamingSource.UpdatePosition();
+        worldGenerator.Update(dt);
 
         const glm::mat4& view = camera.View();
         const glm::mat4& projection = camera.Projection();
@@ -169,10 +204,14 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36); // Draw the cube
 */
 
-        for (auto& chunk : minecraftWorld) {
+        //for (auto& chunk : minecraftWorld) {
+        //    chunk.Draw(shaderProgram);
+        //}
+
+        for (const auto& chunkEntry : worldGenerator.GetChunks()) {
+            const Chunk<32, 32, 32>& chunk = chunkEntry.second;
             chunk.Draw(shaderProgram);
         }
-
         // end the current frame
         window.display();
     }

@@ -159,6 +159,7 @@
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="Chunk.cpp" />
+    <ClCompile Include="WorldGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="Ray.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="shaders.h" />
+    <ClInclude Include="WorldGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="grass.jpg" />
