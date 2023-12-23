@@ -135,10 +135,8 @@ Ray::HitType WorldGenerator::Hit(const Ray& ray, Ray::time_t min, Ray::time_t ma
 
 		// Check if the chunk was hit and update the overall hit status
 		if (chunkHit == Ray::HitType::Hit && chunkRecord.m_cubeIndex != glm::ivec3(0) ) {
-			// Update the hit status
 			hit_or_not = Ray::HitType::Hit;
 
-			// Update the hit record with chunk-specific information
 			record.m_cubeCoordinates = chunkRecord.m_cubeIndex;
 			record.m_neighbourCoordinates = chunkRecord.m_neighbourIndex;
 			std::cout << "Hit in chunk (" << chunkEntry.first.x << ", " << chunkEntry.first.y << ")" << std::endl;
