@@ -112,7 +112,7 @@ void WorldGenerator::Draw(ShaderProgram& shader) {
 	for (const auto& chunkEntry : m_chunks) {
 		const Chunk<32, 32, 32>& chunk = chunkEntry.second;
 
-		// Call the Draw function of each chunk
+		// Draw function of each chunk
 		chunk.Draw(shader);
 	}
 }
@@ -137,11 +137,10 @@ Ray::HitType WorldGenerator::Hit(const Ray& ray, Ray::time_t min, Ray::time_t ma
 	for (const auto& chunkEntry : m_chunks) {
 		const Chunk<32, 32, 32>& chunk = chunkEntry.second; 
 
-		// Call the Hit function of the chunk
 		Chunk<32, 32, 32>::HitRecord chunkRecord;
 		Ray::HitType chunkHit = chunk.Hit(ray, min, max, chunkRecord);
 
-		// Check if the chunk was hit and update the overall hit status
+		// Check if the chunk was hit 
 		if (chunkHit == Ray::HitType::Hit && chunkRecord.m_cubeIndex != glm::ivec3(0) ) {
 			hit_or_not = Ray::HitType::Hit;
 
@@ -167,7 +166,7 @@ Ray::HitType WorldGenerator::Hit(const Ray& ray, Ray::time_t min, Ray::time_t ma
 }
 
 void WorldGenerator::RemoveBlock(const glm::ivec3& coords) {
-	// Find the chunk associated with the given world coordinates
+	// Find the chunk based on given world coordinates
 	glm::ivec2 chunkOrigin = WorldCoordsToChunkOrigin(glm::vec3(coords));
 	std::cout << "Chunk Coordinates: (" << chunkOrigin.x << ", " << chunkOrigin.y << ")" << std::endl;
 	std::cout << "Cube Coordinates: (" << coords.x << ", " << coords.y << ", " << coords.z << ")" << std::endl;
@@ -185,7 +184,7 @@ void WorldGenerator::RemoveBlock(const glm::ivec3& coords) {
 		);
 		std::cout << "Chunk found for coordinates (" << coords.x << ", " << coords.y << ", " << coords.z
 			<< ") in chunk (" << chunkOrigin.x << ", " << chunkOrigin.y << ")." << std::endl;
-		std::cout << "Local Coordinates: (" << localCoords.x << ", " << localCoords.y << ", " << localCoords.z << ")" << std::endl;
+		std::cout << "Local chunk Coordinates: (" << localCoords.x << ", " << localCoords.y << ", " << localCoords.z << ")" << std::endl;
 
 		it->second.RemoveBlock(localCoords.x, localCoords.y, localCoords.z);
 	}
@@ -216,8 +215,6 @@ void WorldGenerator::PlaceBlock(const glm::ivec3& coords, Cube::Type type) {
 }
 
 glm::ivec2 WorldGenerator::WorldCoordsToChunkOrigin(const glm::vec3& at) const {
-	//std::cout << "Intermediate Chunk X: " << static_cast<int>(std::floor(at.x / 32.0f)) << std::endl;
-	//std::cout << "Intermediate Chunk Z: " << static_cast<int>(std::floor(at.z / 32.0f)) << std::endl;
 
 	return glm::ivec2(
 		static_cast<int>(std::floor(at.x / 32.0f)),

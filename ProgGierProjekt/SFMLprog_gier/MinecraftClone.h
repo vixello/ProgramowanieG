@@ -17,6 +17,4 @@ public:
 private:
 	Renderer m_renderer;
 	WorldGenerator m_world;
-	//sf::RenderWindow m_window;
-
 };
