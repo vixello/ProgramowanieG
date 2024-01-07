@@ -68,9 +68,11 @@ inline Chunk<Depth, Width, Height>::Chunk(const glm::vec2& origin, CubePalette& 
 	m_palette(palette), 
 	m_aabb(
 		// Calculate chunk's AABB min point in world
-		glm::vec3(origin.x, origin.y,0.0f),
+		//glm::vec3(origin.x, origin.y,0.0f),
+		glm::vec3(origin.x* Width, 0.0f, origin.y* Depth),
 		// Calculate chunk's AABB max point in world
-		glm::vec3(origin.x + static_cast<float>(Width), static_cast<float>(Height), origin.y + static_cast<float>(Depth))
+		//glm::vec3(origin.x + static_cast<float>(Width), static_cast<float>(Height), origin.y + static_cast<float>(Depth))
+		glm::vec3((origin.x + 1)* Width, Height, (origin.y + 1)* Depth)
 	) {
 
 
@@ -204,13 +206,13 @@ inline bool Chunk<Depth, Width, Height>::RemoveBlock(uint8_t width, uint8_t heig
 	//	std::cout << "Attempted to remove a block outside chunk bounds." << std::endl;
 	//	return false;
 	//}
-	if (width < m_aabb.Min().x || width >= m_aabb.Max().x ||
-		height < m_aabb.Min().y || height >= m_aabb.Max().y ||
-		depth < m_aabb.Min().z || depth >= m_aabb.Max().z) {
-		// Coordinates are outside the chunk's AABB bounds
-		std::cout << "Coordinates outside bounds" << std::endl;
-		return false;
-	}
+	//if (width < m_aabb.Min().x || width >= m_aabb.Max().x ||
+	//	height < m_aabb.Min().y || height >= m_aabb.Max().y ||
+	//	depth < m_aabb.Min().z || depth >= m_aabb.Max().z) {
+	//	// Coordinates are outside the chunk's AABB bounds
+	//	std::cout << "Coordinates outside bounds" << std::endl;
+	//	return false;
+	//}
 	size_t cube_index = CoordsToIndex(depth, width, height);
 
 	if (m_data[cube_index].m_type == Cube::Type::None) {
@@ -218,7 +220,7 @@ inline bool Chunk<Depth, Width, Height>::RemoveBlock(uint8_t width, uint8_t heig
 		return false;
 	}
 	else {
-		std::cout << "Removing a block at (" << width << ", " << height << ", " << depth << ")." << std::endl;
+		//std::cout << "Removing a block at (" << width << ", " << height << ", " << depth << ")." << std::endl;
 
 		m_data[cube_index].m_type = Cube::Type::None;
 		UpdateVisibility();
@@ -239,13 +241,13 @@ inline bool Chunk<Depth, Width, Height>::PlaceBlock(uint8_t width, uint8_t heigh
 	//width > m_aabb.Max().x
 	//	height > m_aabb.Max().y
 	//	depth > m_aabb.Max().z
-	    if (width < m_aabb.Min().x || width >= m_aabb.Max().x ||
-        height < m_aabb.Min().y || height >= m_aabb.Max().y ||
-        depth < m_aabb.Min().z || depth >= m_aabb.Max().z) {
-        // Coordinates are outside the chunk's AABB bounds
-        std::cout << "Coordinates outside bounds" << std::endl;
-        return false;
-    }
+	   // if (width < m_aabb.Min().x || width >= m_aabb.Max().x ||
+    //    height < m_aabb.Min().y || height >= m_aabb.Max().y ||
+    //    depth < m_aabb.Min().z || depth >= m_aabb.Max().z) {
+    //    // Coordinates are outside the chunk's AABB bounds
+    //    std::cout << "Coordinates outside bounds" << std::endl;
+    //    return false;
+    //}
 
 	size_t cube_index = CoordsToIndex(depth, width, height);
 

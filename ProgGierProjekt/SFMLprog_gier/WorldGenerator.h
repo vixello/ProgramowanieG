@@ -24,14 +24,13 @@
 //    int CHUNK_RENDER_DISTANCE;
 //};
 
-
+#pragma once
 #include "CubePalette.h"
 #include "Chunk.h"
 #include "PerlinNoise.h"
 #include "Ray.h"
-#include "Camera.h"
-//#include "Renderer.h"
-//#include "Entity.h"
+#include "Renderer.h"
+#include "Entity.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/hash.hpp"
@@ -44,28 +43,30 @@ public:
 
 	virtual glm::vec3 GetPosition() const = 0;
 };
-class CameraStreamingSource : public IStreamingSource {
-private:
-	const Camera& m_camera;
-	glm::vec3 m_position;
-public:
-	CameraStreamingSource(const Camera& camera) : m_camera(camera) {
-		m_position = m_camera.Position();  // Initialize the position
-	}
-
-	void UpdatePosition() {
-		m_position = m_camera.Position();  // Update the position
-	}
-
-	glm::vec3 GetPosition() const override {
-		return m_position;
-	}
-};
+//class CameraStreamingSource : public IStreamingSource {
+//private:
+//	const Camera& m_camera;
+//	glm::vec3 m_position;
+//public:
+//	CameraStreamingSource(const Camera& camera) : m_camera(camera) {
+//		m_position = m_camera.Position();  // Initialize the position
+//	}
+//
+//	void UpdatePosition() {
+//		m_position = m_camera.Position();  // Update the position
+//	}
+//
+//	glm::vec3 GetPosition() const override {
+//		return m_position;
+//	}
+//};
 class IWorldGenerator {
 public:
 	struct HitRecord {
 		glm::ivec3 m_cubeCoordinates;
 		glm::ivec3 m_neighbourCoordinates;
+		glm::ivec2 m_chunkCoordinates; 
+
 	};
 
 	virtual ~IWorldGenerator() = default;
@@ -80,25 +81,25 @@ public:
 
 class MinecraftClone;
 
-class WorldGenerator : public IWorldGenerator/*, public IRenderable */{
+class WorldGenerator : public IWorldGenerator, public IRenderable {
 public:
 	using FixedSizeChunk = Chunk<32, 32, 32>;
 
-	WorldGenerator(/*MinecraftClone& instance, */size_t renderDistance);
+	WorldGenerator(MinecraftClone& instance, size_t renderDistance);
 	~WorldGenerator();
 
 	void Update(float deltaTime);
 
-	//template <class T, typename ...Args>
-	//T* CreateEntity(Args&&... params) {
-	//	auto& ent = m_entities.emplace_back(std::make_unique<T>(m_instance, params...));
+	template <class T, typename ...Args>
+	T* CreateEntity(Args&&... params) {
+		auto& ent = m_entities.emplace_back(std::make_unique<T>(m_instance, params...));
 
-	//	return dynamic_cast<T*>(ent.get());
-	//}
+		return dynamic_cast<T*>(ent.get());
+	}
 	const std::unordered_map<glm::ivec2, Chunk<32, 32, 32>>& GetChunks() const {
 		return m_chunks;
 	}
-	//void Draw(ShaderProgram& shader) override;
+	void Draw(ShaderProgram& shader) override;
 
 	void RegisterStreamingSource(IStreamingSource* source) override;
 	void UnregisterStreamingSource() override;
@@ -116,7 +117,7 @@ private:
 	std::unordered_map<glm::ivec2, Chunk<32, 32, 32>> m_chunks;
 	CubePalette m_palette;
 	PerlinNoise m_rng;
-	//std::vector<std::unique_ptr<Entity>> m_entities;
+	std::vector<std::unique_ptr<Entity>> m_entities;
 
-	//MinecraftClone& m_instance;
+	MinecraftClone& m_instance;
 };

@@ -1,27 +1,31 @@
 
 #include "WorldGenerator.h"
-//#include "Player.h"
-//#include "MinecraftClone.h"
+#include "Player.h"
+#include "MinecraftClone.h"
 
 #include <cmath>
 #include <algorithm>
 #include <iterator>
 
-WorldGenerator::WorldGenerator(/*MinecraftClone& instance,*/ size_t renderDistance)
+WorldGenerator::WorldGenerator(MinecraftClone& instance, size_t renderDistance)
 	: m_renderDistance(renderDistance)
-	/*, m_instance(instance)*/ {
+	, m_instance(instance) {
 	// register renderable
+	m_instance.GetRenderer()->RegisterRenderable(this);
+
 }
 
 WorldGenerator::~WorldGenerator() {
 	// unregister renderable
+	m_instance.GetRenderer()->UnregisterRenderable(this);
+
 }
 
 void WorldGenerator::Update(float deltaTime) {
 	//// Update all entities
-	//for (auto& entity : m_entities) {
-	//	entity->Update(deltaTime);
-	//}
+	for (auto& entity : m_entities) {
+		entity->Update(deltaTime);
+	}
 
 	// lexigraphical comparator
 	// accept any 2D vector of values implementing order operator
@@ -38,9 +42,9 @@ void WorldGenerator::Update(float deltaTime) {
 
 	// Get streaming position
 	glm::vec3 streamingPosition = m_streamingSource ? m_streamingSource->GetPosition() : glm::vec3(0.0f);
-	if (m_streamingSource) {
-		static_cast<CameraStreamingSource*>(m_streamingSource)->UpdatePosition();
-	}
+	//if (m_streamingSource) {
+	//	static_cast<CameraStreamingSource*>(m_streamingSource)->UpdatePosition();
+	//}
 	//std::cout << "streamingPosition: (" << streamingPosition.x << ", " << streamingPosition.y << ", " << streamingPosition.z << ")" << std::endl;
 
 	// Get center chunk
@@ -101,14 +105,17 @@ void WorldGenerator::Update(float deltaTime) {
 		m_chunks.emplace(toAdd, std::move(newChunk));
 	}
 
-
-
-
 }
 
-//void WorldGenerator::Draw(ShaderProgram& shader) {
-//	// draw all chunks
-//}
+void WorldGenerator::Draw(ShaderProgram& shader) {
+	// draw all chunks
+	for (const auto& chunkEntry : m_chunks) {
+		const Chunk<32, 32, 32>& chunk = chunkEntry.second;
+
+		// Call the Draw function of each chunk
+		chunk.Draw(shader);
+	}
+}
 
 void WorldGenerator::RegisterStreamingSource(IStreamingSource* source) {
 	// register
@@ -124,7 +131,8 @@ void WorldGenerator::UnregisterStreamingSource() {
 
 Ray::HitType WorldGenerator::Hit(const Ray& ray, Ray::time_t min, Ray::time_t max, HitRecord& record) const {
 	Ray::HitType hit_or_not = Ray::HitType::Miss;
-
+	constexpr uint8_t ChunkWidth = 32;
+	constexpr uint8_t ChunkDepth = 32;
 	// Iterate through each chunk in the world
 	for (const auto& chunkEntry : m_chunks) {
 		const Chunk<32, 32, 32>& chunk = chunkEntry.second; 
@@ -137,11 +145,20 @@ Ray::HitType WorldGenerator::Hit(const Ray& ray, Ray::time_t min, Ray::time_t ma
 		if (chunkHit == Ray::HitType::Hit && chunkRecord.m_cubeIndex != glm::ivec3(0) ) {
 			hit_or_not = Ray::HitType::Hit;
 
-			record.m_cubeCoordinates = chunkRecord.m_cubeIndex;
-			record.m_neighbourCoordinates = chunkRecord.m_neighbourIndex;
+			glm::ivec3 localCoords = chunkRecord.m_cubeIndex + glm::ivec3(chunkEntry.first.x * ChunkWidth, 0, chunkEntry.first.y * ChunkDepth);
+			std::cout << "localCoords (" << chunkEntry.first.x * ChunkWidth << ", " << chunkEntry.first.y * ChunkDepth << ")" << std::endl;
+
+			record.m_cubeCoordinates = localCoords;
+			//record.m_cubeCoordinates = chunkRecord.m_cubeIndex;
+			record.m_neighbourCoordinates = chunkRecord.m_neighbourIndex + glm::ivec3(chunkEntry.first.x * ChunkWidth, 0, chunkEntry.first.y * ChunkDepth);
+			record.m_chunkCoordinates = chunkEntry.first;
+
 			std::cout << "Hit in chunk (" << chunkEntry.first.x << ", " << chunkEntry.first.y << ")" << std::endl;
-			//std::cout << "Cube Coordinates: (" << record.m_cubeCoordinates.x << ", " << record.m_cubeCoordinates.y << ", " << record.m_cubeCoordinates.z << ")" << std::endl;
+			//std::cout << "m_cubeCoordinates (" << record.m_cubeCoordinates.x << ", " << record.m_cubeCoordinates.y << ", " << record.m_cubeCoordinates.z << ")" << std::endl;
+			//std::cout << "Cube hit Coordinates: (" << record.m_cubeCoordinates.x << ", " << record.m_cubeCoordinates.y << ", " << record.m_cubeCoordinates.z << ")" << std::endl;
 			//std::cout << "Neighbour Coordinates: (" << record.m_neighbourCoordinates.x << ", " << record.m_neighbourCoordinates.y << ", " << record.m_neighbourCoordinates.z << ")" << std::endl;
+			//std::cout << "Chunk Coordinates (" << WorldCoordsToChunkOrigin(glm::vec3(record.m_cubeCoordinates)).x << ", " << WorldCoordsToChunkOrigin(glm::vec3(record.m_cubeCoordinates)).y << ")" << std::endl;
+			//std::cout << "World Coordinates (" << ray.Origin().x << ", " << ray.Origin().y << ", " << ray.Origin().z << ")" << std::endl;
 
 		}
 	}
@@ -152,6 +169,10 @@ Ray::HitType WorldGenerator::Hit(const Ray& ray, Ray::time_t min, Ray::time_t ma
 void WorldGenerator::RemoveBlock(const glm::ivec3& coords) {
 	// Find the chunk associated with the given world coordinates
 	glm::ivec2 chunkOrigin = WorldCoordsToChunkOrigin(glm::vec3(coords));
+	std::cout << "Chunk Coordinates: (" << chunkOrigin.x << ", " << chunkOrigin.y << ")" << std::endl;
+	std::cout << "Cube Coordinates: (" << coords.x << ", " << coords.y << ", " << coords.z << ")" << std::endl;
+
+	std::cout << std::endl;
 	auto it = m_chunks.find(chunkOrigin);
 	constexpr uint8_t ChunkWidth = 32;
 	constexpr uint8_t ChunkDepth = 32;
@@ -162,13 +183,19 @@ void WorldGenerator::RemoveBlock(const glm::ivec3& coords) {
 			coords.y,
 			coords.z - chunkOrigin.y * ChunkDepth
 		);
+		std::cout << "Chunk found for coordinates (" << coords.x << ", " << coords.y << ", " << coords.z
+			<< ") in chunk (" << chunkOrigin.x << ", " << chunkOrigin.y << ")." << std::endl;
+		std::cout << "Local Coordinates: (" << localCoords.x << ", " << localCoords.y << ", " << localCoords.z << ")" << std::endl;
 
-		// Call RemoveBlock on the corresponding chunk
 		it->second.RemoveBlock(localCoords.x, localCoords.y, localCoords.z);
 	}
 	else {
 		// Handle the case when the chunk is not found
 		std::cout << "Chunk not found for coordinates (" << coords.x << ", " << coords.y << ", " << coords.z << ")." << std::endl;
+		std::cout << "Player position: " << m_streamingSource->GetPosition().x << ", "
+			<< m_streamingSource->GetPosition().y << ", "
+			<< m_streamingSource->GetPosition().z << std::endl;
+
 	}
 }
 
@@ -189,6 +216,9 @@ void WorldGenerator::PlaceBlock(const glm::ivec3& coords, Cube::Type type) {
 }
 
 glm::ivec2 WorldGenerator::WorldCoordsToChunkOrigin(const glm::vec3& at) const {
+	//std::cout << "Intermediate Chunk X: " << static_cast<int>(std::floor(at.x / 32.0f)) << std::endl;
+	//std::cout << "Intermediate Chunk Z: " << static_cast<int>(std::floor(at.z / 32.0f)) << std::endl;
+
 	return glm::ivec2(
 		static_cast<int>(std::floor(at.x / 32.0f)),
 		static_cast<int>(std::floor(at.z / 32.0f))
