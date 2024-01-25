@@ -1,28 +1,3 @@
-//// WorldGenerator.h
-//#pragma once
-//#include "Chunk.h"
-//#include "CubePalette.h"
-//#include "glm/glm.hpp"
-//#include <vector>
-//
-//class WorldGenerator {
-//public:
-//    WorldGenerator(CubePalette& palette);
-//    void Update(const glm::vec2& playerPosition);
-//    //void Update(const glm::vec3& playerPosition, const glm::vec3& viewDirection);
-//    const std::vector<Chunk<16, 16, 32>>& GetGeneratedChunks() const;
-//    Chunk<16, 16, 32>& getChunkAtPlayer(const glm::vec2& playerPosition, std::vector<Chunk<16, 16, 32>>& chunks);
-//
-//    glm::ivec2 playerChunk;
-//private:
-//    CubePalette& m_palette;
-//    PerlinNoise rng;
-//    std::vector<Chunk<16, 16, 32>> m_generatedChunks;
-//    glm::vec2 m_lastPlayerPosition;
-//    glm::vec2 m_lastPlayerChunk;
-//    glm::vec2 m_lastViewChunk;
-//    int CHUNK_RENDER_DISTANCE;
-//};
 
 #pragma once
 #include "CubePalette.h"
@@ -34,6 +9,9 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtx/hash.hpp"
+#include <filesystem>
+#include <fstream>
+//#include "nlohmann/json.hpp"
 
 #include <unordered_map>
 
@@ -80,10 +58,12 @@ public:
 };
 
 class MinecraftClone;
+class Serialization;
 
 class WorldGenerator : public IWorldGenerator, public IRenderable {
 public:
 	using FixedSizeChunk = Chunk<32, 32, 32>;
+	using CubeData = FixedSizeChunk::CubeData;  
 
 	WorldGenerator(MinecraftClone& instance, size_t renderDistance);
 	~WorldGenerator();
@@ -114,10 +94,11 @@ private:
 	IStreamingSource* m_streamingSource{ nullptr };
 
 	size_t m_renderDistance;
-	std::unordered_map<glm::ivec2, Chunk<32, 32, 32>> m_chunks;
+	std::unordered_map<glm::ivec2, FixedSizeChunk> m_chunks;
 	CubePalette m_palette;
 	PerlinNoise m_rng;
 	std::vector<std::unique_ptr<Entity>> m_entities;
+	std::string m_worldDirectory;
 
 	MinecraftClone& m_instance;
 };

@@ -5,6 +5,7 @@
 #include "CubePalette.h"
 #include "Ray.h"
 #include "AABB.h"
+#include "nlohmann/json.hpp"
 
 #include <glad/glad.h>
 #include "glm/glm.hpp"
@@ -19,6 +20,8 @@
  */
 template <uint8_t Depth, uint8_t Width, uint8_t Height>
 class Chunk {
+
+public:
 	struct CubeData {
 		/** Data describing single cube in a chunk.
 		 * Type of cube is used when drawing together with CubePalette to obtain OpenGL objects.
@@ -32,7 +35,6 @@ class Chunk {
 	 * To obtain cube index based on width, heigh and depth use CoordsToIndex function
 	 */
 	using FlattenData_t = std::array<CubeData, Depth* Width* Height>;
-public:
 	/** Chunk hit record
 	 * Contains all data needed after ray cast to remove and place new blocks
 	 */
@@ -41,7 +43,10 @@ public:
 		glm::ivec3 m_cubeIndex;
 		glm::ivec3 m_neighbourIndex;
 	};
+
 	Chunk(const glm::vec2& origin, CubePalette& palette);
+	Chunk(const glm::vec2& origin);
+	Chunk(const glm::vec2& origin, const PerlinNoise& rng);
 
 	void Generate(const PerlinNoise& rng);
 
@@ -52,14 +57,23 @@ public:
 	bool RemoveBlock(uint8_t width, uint8_t height, uint8_t depth);
 	bool PlaceBlock(uint8_t width, uint8_t height, uint8_t depth, Cube::Type type);
 	glm::vec2 getOrigin() { return m_origin; };
-private:
-	size_t CoordsToIndex(size_t depth, size_t width, size_t height) const;
-	void UpdateVisibility();
-
-	CubePalette& m_palette;
 	FlattenData_t m_data;
 	glm::vec2 m_origin;
+	bool m_needsSaving;
+	bool NeedsSaving() const {
+		return m_needsSaving;
+	}
+	void UpdateVisibility();
+	friend struct nlohmann::adl_serializer<Chunk<32, 32, 32>> ;
+
+private:
+
+	size_t CoordsToIndex(size_t depth, size_t width, size_t height) const;
+
+	CubePalette& m_palette;
 	AABB m_aabb;
+
+
 };
 
 template<uint8_t Depth, uint8_t Width, uint8_t Height>
@@ -74,8 +88,25 @@ inline Chunk<Depth, Width, Height>::Chunk(const glm::vec2& origin, CubePalette& 
 		//glm::vec3(origin.x + static_cast<float>(Width), static_cast<float>(Height), origin.y + static_cast<float>(Depth))
 		glm::vec3((origin.x + 1)* Width, Height, (origin.y + 1)* Depth)
 	) {
-
-
+}
+template <uint8_t Depth, uint8_t Width, uint8_t Height>
+Chunk<Depth, Width, Height>::Chunk(const glm::vec2& origin) :
+	m_origin(origin),
+	m_palette(m_palette),
+	m_aabb(
+		glm::vec3(origin.x* Width, 0.0f, origin.y* Depth),
+		glm::vec3((origin.x + 1)* Width, Height, (origin.y + 1)* Depth)
+	)
+{
+	UpdateVisibility();
+}
+template <uint8_t Depth, uint8_t Width, uint8_t Height>
+Chunk<Depth, Width, Height>::Chunk(const glm::vec2& origin, const PerlinNoise& rng) :
+	m_origin(origin),
+	m_palette(m_palette),
+	m_aabb(glm::vec3(origin.x* Width, 0.0f, origin.y* Depth), glm::vec3((origin.x + 1)* Width, Height, (origin.y + 1)* Depth))
+{
+	Generate(rng);
 }
 
 template<uint8_t Depth, uint8_t Width, uint8_t Height>
@@ -225,7 +256,7 @@ inline bool Chunk<Depth, Width, Height>::RemoveBlock(uint8_t width, uint8_t heig
 		m_data[cube_index].m_type = Cube::Type::None;
 		UpdateVisibility();
 		std::cout << "Removing a block." << std::endl;
-
+		m_needsSaving = true;
 		return true;
 	}
 }
@@ -250,6 +281,7 @@ inline bool Chunk<Depth, Width, Height>::PlaceBlock(uint8_t width, uint8_t heigh
     //}
 
 	size_t cube_index = CoordsToIndex(depth, width, height);
+	m_needsSaving = true;
 
 	if (m_data[cube_index].m_type == Cube::Type::None) {
 		m_data[cube_index].m_type = type;
@@ -264,6 +296,7 @@ inline bool Chunk<Depth, Width, Height>::PlaceBlock(uint8_t width, uint8_t heigh
 
 		return false;
 	}
+
 }
 
 template<uint8_t Depth, uint8_t Width, uint8_t Height>

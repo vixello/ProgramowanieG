@@ -2,6 +2,7 @@
 #include "WorldGenerator.h"
 #include "Player.h"
 #include "MinecraftClone.h"
+#include "Serialization.h"
 
 #include <cmath>
 #include <algorithm>
@@ -10,9 +11,13 @@
 WorldGenerator::WorldGenerator(MinecraftClone& instance, size_t renderDistance)
 	: m_renderDistance(renderDistance)
 	, m_instance(instance) {
+	
+	m_worldDirectory = std::filesystem::current_path().string();
+	m_worldDirectory = (std::filesystem::path(m_worldDirectory) / "world_data").string();
+	std::filesystem::create_directories(m_worldDirectory);
+
 	// register renderable
 	m_instance.GetRenderer()->RegisterRenderable(this);
-
 }
 
 WorldGenerator::~WorldGenerator() {
@@ -73,25 +78,40 @@ void WorldGenerator::Update(float deltaTime) {
 		neighbourChunks.begin(), neighbourChunks.end(),
 		std::back_inserter(chunksToRemove), comp);
 
+	for (auto& chunkOrigin : chunksToRemove) {
+		FixedSizeChunk& chunk = m_chunks.at(chunkOrigin);
+		if (chunk.NeedsSaving()) {
+			std::filesystem::path chunkPath = m_worldDirectory;
+			chunkPath.append("chunk." + std::to_string(chunkOrigin.x) + "." + std::to_string(chunkOrigin.y) + ".json");
+			std::ofstream chunkFile(chunkPath);
+
+			const nlohmann::json chunkData = std::move(chunk); // please see Serialization.h comment about move-only types
+
+			chunkFile << chunkData;
+		}
+		m_chunks.erase(chunkOrigin);
+
+	}
+
 	// Erase those chunks
 	for (const auto& toRemove : chunksToRemove) {
 		m_chunks.erase(toRemove);
 	}
 
 	//// ChunksToAdd is a set_difference between neighbours chunks and current chunks
-	//std::vector<glm::ivec2> chunksToAdd;
-	//std::set_difference(neighbourChunks.begin(), neighbourChunks.end(),
-	//	chunkArray.begin(), chunkArray.end(),
-	//	std::back_inserter(chunksToAdd), comp);
-// Chunks to add is a set_difference between neighbours chunk and current chunks
 	std::vector<glm::ivec2> chunksToAdd;
+	std::set_difference(neighbourChunks.begin(), neighbourChunks.end(),
+		chunkArray.begin(), chunkArray.end(),
+		std::back_inserter(chunksToAdd), comp);
+// Chunks to add is a set_difference between neighbours chunk and current chunks
+	//std::vector<glm::ivec2> chunksToAdd;
 
-	for (const auto& neighbour : neighbourChunks) {
-		auto it = std::find(chunkArray.begin(), chunkArray.end(), neighbour);
-		if (it == chunkArray.end()) {
-			chunksToAdd.push_back(neighbour);
-		}
-	}
+	//for (const auto& neighbour : neighbourChunks) {
+	//	auto it = std::find(chunkArray.begin(), chunkArray.end(), neighbour);
+	//	if (it == chunkArray.end()) {
+	//		chunksToAdd.push_back(neighbour);
+	//	}
+	//}
 	//std::cout << "centerChunk: (" << centerChunk.x << ", " << centerChunk.y << ")" << std::endl;
 	//std::cout << "neighbourChunks: ";
 	//for (const auto& neighbour : neighbourChunks) {
@@ -99,11 +119,86 @@ void WorldGenerator::Update(float deltaTime) {
 	//}
 
 	// Add those chunks and generate terrain
-	for (const auto& toAdd : chunksToAdd) {
-		Chunk<32, 32, 32> newChunk(glm::vec2(toAdd), m_palette);
-		newChunk.Generate(m_rng);
-		m_chunks.emplace(toAdd, std::move(newChunk));
+	//for (const auto& toAdd : chunksToAdd) {
+	//	FixedSizeChunk newChunk(glm::vec2(toAdd), m_palette);
+	//	newChunk.Generate(m_rng);
+	//	m_chunks.emplace(toAdd, std::move(newChunk));
+	//}
+	for (auto& chunkOrigin : chunksToAdd) {
+		std::filesystem::path chunkPath = m_worldDirectory;
+		chunkPath.append("chunk." + std::to_string(chunkOrigin.x) + "." + std::to_string(chunkOrigin.y) + ".json");
+		if (std::filesystem::exists(chunkPath)) {
+			try {
+				std::cout << "FILE EXISTS" << std::endl;
+			std::ifstream chunkFile(chunkPath);
+			std::cout << "chunkFile" << std::endl;
+
+			//nlohmann::json chunkData = nlohmann::json::parse(chunkFile);
+			//this desnt work 
+			//m_chunks.emplace(chunkOrigin, std::move(chunkData.get<FixedSizeChunk>()));
+			
+			//if (chunkFile.peek() != std::ifstream::traits_type::eof()) {
+				// Check if the file is not empty before attempting to parse
+				//nlohmann::json chunkData = nlohmann::json::parse(chunkFile);
+				//m_chunks.emplace(chunkOrigin, std::move(chunkData.get<FixedSizeChunk>()));
+				//chunkFile >> chunkData;
+
+				// Deserialize the chunk and add it to m_chunks
+				//FixedSizeChunk loadedChunk = chunkData;
+				//m_chunks.emplace(chunkOrigin, std::move(loadedChunk));
+				//nlohmann::json chunkData;
+				//chunkFile >> chunkData;
+				nlohmann::json chunkData = nlohmann::json::parse(chunkFile);
+				std::cout << "chunkData" << std::endl;
+				//FixedSizeChunk newChunk = chunkData.template get<FixedSizeChunk>();
+
+				//chunkData.template get<FixedSizeChunk>().Generate(m_rng);
+				//std::cout << "Generate" << std::endl;
+
+				//FixedSizeChunk newChunk = chunkData.get<FixedSizeChunk>();
+				//m_chunks.emplace(chunkOrigin, std::move(newChunk));
+				//m_chunks.emplace(chunkOrigin, std::move(chunkData.template get<FixedSizeChunk>()));
+				std::cout << "emplace" << std::endl;
+
+				// 
+			//}
+
+			//m_chunks.emplace(chunkOrigin, std::move(newChunk));
+			}
+			catch (const std::exception& e) {
+				// Handle parsing errors
+				std::cout << "Error parsing chunk JSON: " << e.what() << std::endl;
+			}
+
+		}
+		else {
+			FixedSizeChunk newChunk(glm::vec2(chunkOrigin), m_palette);
+			newChunk.Generate(m_rng);
+			m_chunks.emplace(chunkOrigin, std::move(newChunk));
+			//m_chunks.try_emplace(chunkOrigin, chunkOrigin, m_rng);
+		}
 	}
+	//for (auto& chunkOrigin : chunksToAdd){
+	//	const auto it = [&]()-> decltype(auto) {
+	//		std::filesystem::path chunkPath = m_worldDirectory;
+	//		chunkPath.append("chunk." + std::to_string(chunkOrigin.x) + "." + std::to_string(chunkOrigin.y) + ".json");
+	//		if (std::filesystem::exists(chunkPath)) {
+	//			std::ifstream chunkFile(chunkPath);
+	//			nlohmann::json chunkData = nlohmann::json::parse(chunkFile);
+	//			return m_chunks.try_emplace(chunkOrigin, std::move(chunkData.template get<FixedSizeChunk>()));
+	//		}
+	//		else {
+	//			//return m_chunks.try_emplace(chunkOrigin, chunkOrigin, m_rng);
+	//			FixedSizeChunk newChunk(glm::vec2(chunkOrigin), m_palette);
+	//			newChunk.Generate(m_rng);
+	//			m_chunks.emplace(chunkOrigin, std::move(newChunk));
+	//		};
+	//	}();
+	//	if (it.second) {
+	//		m_instance.GetRenderer()->RegisterRenderable(&it.first->second);
+	//	}
+	//}
+
 
 }
 

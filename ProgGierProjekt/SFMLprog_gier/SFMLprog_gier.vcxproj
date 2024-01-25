@@ -180,6 +180,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Serialization.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="WorldGenerator.h" />
